@@ -2,15 +2,17 @@
 
 <div align="center">
 
-[![Website](https://img.shields.io/badge/Website-Ultra--Fusion-blue)](https://sjtuyinjie.github.io/ultrafusion-web/)
-[![Hugging Face](https://img.shields.io/badge/Hugging%20Face-pre--built-ffcc4d)](https://huggingface.co/TianYihong/Ultra-Fusion)
-[![ROS2](https://img.shields.io/badge/ROS2-Humble-22314e)](docs/ros2_humble_m3dgr.md)
-[![arXiv](https://img.shields.io/badge/arXiv-2606.21223-b31b1b)](https://arxiv.org/abs/2606.21223)
-[![Dataset](https://img.shields.io/badge/Dataset-M3DGR-orange)](https://github.com/sjtuyinjie/M3DGR)
-[![Video](https://img.shields.io/badge/Video-Youtube-red)](https://www.youtube.com/watch?v=ekzD9ovd1SQ)
-[![License](https://img.shields.io/badge/License-MIT-yellow)](#5-license--acknowledgements)
-[![Platform](https://img.shields.io/badge/Platforms-Ground%20%7C%20Legged%20%7C%20Aerial-green)](#42-cross-platform-results)
 
+[![Website](https://img.shields.io/badge/Website-Ultra--Fusion-blue)](https://sjtuyinjie.github.io/ultrafusion-web/)
+[![Hugging Face](https://img.shields.io/badge/Hugging%20Face-pre--built-fcc419)](https://huggingface.co/TianYihong/Ultra-Fusion)
+[![arXiv](https://img.shields.io/badge/arXiv-2606.21223-b31b1b)](https://arxiv.org/abs/2606.21223)
+[![Dataset](https://img.shields.io/badge/Dataset-M3DGR-f59e0b)](https://github.com/sjtuyinjie/M3DGR)
+[![Video](https://img.shields.io/badge/Video-YouTube-ff0000)](https://www.youtube.com/watch?v=ekzD9ovd1SQ)
+[![License](https://img.shields.io/badge/License-MIT-8b949e)](#5-license--acknowledgements)
+
+[![ROS1 Noetic](https://img.shields.io/badge/ROS1-Noetic-3fb950)]()
+[![ROS2 Humble](https://img.shields.io/badge/ROS2-Humble-0052cc)](docs/ros2_humble_m3dgr.md)
+[![Platform](https://img.shields.io/badge/Platforms-Ground%20%7C%20Legged%20%7C%20Aerial-10b981)](#42-cross-platform-results)
 
 </div>
 
