@@ -10,8 +10,9 @@
 [![Video](https://img.shields.io/badge/Video-YouTube-ff0000)](https://www.youtube.com/watch?v=ekzD9ovd1SQ)
 [![License](https://img.shields.io/badge/License-MIT-8b949e)](#5-license--acknowledgements)
 
-[![ROS1 Noetic](https://img.shields.io/badge/ROS1-Noetic-3fb950)]()
+[![ROS1 Noetic](https://img.shields.io/badge/ROS1-Noetic-3fb950)](#ros1-vs-ros2--which-to-choose)
 [![ROS2 Humble](https://img.shields.io/badge/ROS2-Humble-0052cc)](docs/ros2_humble_m3dgr.md)
+[![Sensor](https://img.shields.io/badge/Sensor-RGB--D--L--I--W--G-9333ea)](#31-fusion-modes)
 [![Platform](https://img.shields.io/badge/Platforms-Ground%20%7C%20Legged%20%7C%20Aerial-10b981)](#42-cross-platform-results)
 
 </div>
