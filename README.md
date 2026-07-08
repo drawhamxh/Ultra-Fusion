@@ -31,7 +31,7 @@ Within one configurable optimization framework, Ultra-Fusion supports **WIO, VIO
 - **v0.1.0 (ROS1 Noetic)** — pre-built binaries to reproduce the paper benchmarks ([§2.1–2.2](#21-m3dgr-ros1)).
 - **v0.1.1 (ROS1 Noetic)** — multi-camera support and custom-hardware adaptation; [D360 walkthrough](docs/visual_life_d360.md) ([§2.4](#24-adapt-your-device)).
 - **v0.2.0 (ROS2 Humble)** — same `uf_node` + YAML workflow on Ubuntu 22.04 ([§2.3](#23-ros2-humble-runtime)).
-
+- **v0.2.1 (ROS2 Humble)** — fix the ROS2 Humble runtime package for M3DGR VIO/VIWO and validates LVWIO in the public ROS2 Docker runtime.
 More demos and releases are on the way — stay tuned.
 
 ## Contents
