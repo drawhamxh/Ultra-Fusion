@@ -1,11 +1,13 @@
-# Adapting Ultra-Fusion to Your Own Device
+# Ultra-Fusion-Omni (UFO): Omnidirectional Multi-Camera LVIO
 
-Copy the closest released profile, edit ROS topics, camera calibration, and extrinsics, then run `uf_node` with your YAML. **Computer Vision Life D360** below is the reference case (LiDAR + IMU + three fisheye cameras); replace its topics and calibration with yours.
+**Ultra-Fusion-Omni (UFO)** is the v0.1.1 release line for platforms with **360° vision and LiDAR**. Copy the closest released profile, edit ROS topics, camera calibration, and extrinsics, then run `uf_node` with your YAML.
 
-> v0.1.0 = paper package. Multi-camera and `visual_life` profile require v0.1.1.
+**Computer Vision Life D360** below is the public reference (Livox Mid-360 + IMU + three fisheye cameras); replace its topics and calibration with yours.
+
+> v0.1.0 = paper package. UFO multi-camera and the `visual_life` profile require **v0.1.1**. Overview in the README: [§2.4 Ultra-Fusion-Omni (UFO)](../README.md#24-ultra-fusion-omni-ufo).
 
 <p align="center">
-  <img src="../images/gifs/d360_visual_life.gif" alt="Multi-camera LVIO on D360 data" width="80%">
+  <img src="../images/gifs/d360_visual_life.gif" alt="UFO multi-camera LVIO on D360 (360° vision + LiDAR)" width="80%">
 </p>
 
 ## Workflow
@@ -20,7 +22,7 @@ Copy the closest released profile, edit ROS topics, camera calibration, and extr
 | 6 | Multi-camera (if needed) | `use_multi_camera: true`, one module per stream |
 | 7 | Run and check RViz / logs | `uf_node visual_life` |
 
-YAML field reference: [§3 Custom Profiles](../README.md#3-custom-profiles).
+YAML field reference while adapting your rig: [§3 Adapt to Your Device & Platform](../README.md#3-custom-profiles).
 
 **Single-camera** (M3DGR and most profiles): omit `use_multi_camera` or set `false`; use `common.image0_topic` and `cam0_calib`. **Multi-camera**: `use_multi_camera: true` and `multi_camera.modules[]`.
 

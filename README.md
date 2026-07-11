@@ -29,9 +29,10 @@ Within one configurable optimization framework, Ultra-Fusion supports **WIO, VIO
 **Available releases:**
 
 - **v0.1.0 (ROS1 Noetic)** — pre-built binaries to reproduce the paper benchmarks ([§2.1–2.2](#21-m3dgr-ros1)).
-- **v0.1.1 (ROS1 Noetic)** — multi-camera support and custom-hardware adaptation; [D360 walkthrough](docs/visual_life_d360.md) ([§2.4](#24-adapt-your-device)).
+- **v0.1.1 Ultra-Fusion-Omni (UFO) on ROS1 Noetic** — omnidirectional multi-camera LVIO for 360° vision + LiDAR; D360 as example ([§2.4](#24-ultra-fusion-omni-ufo), [walkthrough](docs/visual_life_d360.md)).
 - **v0.2.0 (ROS2 Humble)** — same `uf_node` + YAML workflow on Ubuntu 22.04 ([§2.3](#23-ros2-humble-runtime)).
-- **v0.2.1 (ROS2 Humble)** — fix the ROS2 Humble runtime package for M3DGR VIO/VIWO and validates LVWIO in the public ROS2 Docker runtime.
+- **v0.2.1 (ROS2 Humble)** — fixes the ROS2 Humble runtime for M3DGR VIO/VIWO and validates LVWIO in the public ROS2 Docker runtime.
+
 More demos and releases are on the way — stay tuned.
 
 ## Contents
@@ -50,8 +51,8 @@ More demos and releases are on the way — stay tuned.
   - [2.1 M3DGR (ROS1)](#21-m3dgr-ros1)
   - [2.2 Other datasets (ROS1)](#22-other-datasets-ros1)
   - [2.3 ROS2 Humble runtime](#23-ros2-humble-runtime)
-  - [2.4 Adapting Your Own Device (D360 Example)](#24-adapt-your-device)
-- [3. Custom Profiles](#3-custom-profiles)
+  - [2.4 Ultra-Fusion-Omni (UFO)](#24-ultra-fusion-omni-ufo)
+- [3. Adapt to Your Device & Platform](#3-custom-profiles)
   - [3.1 Fusion modes](#31-fusion-modes)
   - [3.2 Camera intrinsics](#32-camera-intrinsics)
   - [3.3 GNSS fusion](#33-gnss-fusion)
@@ -127,16 +128,16 @@ Reported gains include competitive accuracy and improved localization availabili
 | | **ROS1 Noetic** | **ROS2 Humble** |
 | --- | --- | --- |
 | OS | Ubuntu 20.04 | Ubuntu 22.04 |
-| Package | v0.1.0 (paper) / v0.1.1 (multi-camera) | v0.2.0 |
+| Package | v0.1.0 (paper) / v0.1.1 (**UFO**) | v0.2.0 / v0.2.1 |
 | Install | [Docker](#docker-installation-recommended-) or [Native](#native-installation) | Same paths — pick the ROS2 image or deps script |
 | Data | ROS1 bags (`rosbag play`) | ROS2 bags (`ros2 bag play`) |
-| Profiles | All five benchmarks + custom device | Any YAML profile — point topics at your ROS2 drivers ([M3DGR example](#example-m3dgr-on-ros2)) |
-| Docs | [§2.1–2.2](#21-m3dgr-ros1) · [§2.4](#24-adapt-your-device) | [§2.3](#23-ros2-humble-runtime) · [ros2 guide](docs/ros2_humble_m3dgr.md) |
+| Profiles | All five benchmarks + UFO (`visual_life`) | Any YAML profile — point topics at your ROS2 drivers ([M3DGR example](#example-m3dgr-on-ros2)) |
+| Docs | [§2.1–2.2](#21-m3dgr-ros1) · [§2.4 UFO](#24-ultra-fusion-omni-ufo) | [§2.3](#23-ros2-humble-runtime) · [ros2 guide](docs/ros2_humble_m3dgr.md) |
 
 > [!TIP]
-> **First time?** Start with **ROS1** for the full benchmark suite and hardware adaptation guide. Choose **ROS2** when your drivers or recordings are already on Humble — Ultra-Fusion is not tied to a single dataset.
+> **First time?** Start with **ROS1** for the full benchmark suite. For 360° multi-camera + LiDAR rigs, use **UFO (v0.1.1)**. Choose **ROS2** when your drivers or recordings are already on Humble.
 
-The paper release is **v0.1.0**. **v0.1.1** adds multi-camera support and the `visual_life` reference profile — see [§2.4](#24-adapt-your-device).
+The paper release is **v0.1.0**. **v0.1.1** ships **Ultra-Fusion-Omni (UFO)** — see [§2.4](#24-ultra-fusion-omni-ufo).
 
 ---
 
@@ -322,7 +323,7 @@ Proceed to [§2.3 ROS2 runtime](#23-ros2-humble-runtime).
 | `/opt/ultrafusion/config/lvig` | MARS-LVIG profile |
 | `/opt/ultrafusion/config/kaist` | KAIST profile |
 | `/opt/ultrafusion/config/groundtour` | GrandTour profile |
-| `/opt/ultrafusion/config/visual_life` | Multi-camera LVIO reference profile (D360), v0.1.1 |
+| `/opt/ultrafusion/config/visual_life` | **UFO** reference profile — omni multi-camera LVIO (D360), v0.1.1 |
 | `/opt/ultrafusion/rviz/lio.rviz` | Default RViz layout |
 
 **ROS2 package** (`ultrafusion-ros2_*.deb`):
@@ -351,7 +352,7 @@ Each `uf_node <shortcut>` maps to a YAML under `/opt/ultrafusion/config/`. You c
 | 2 | `rosbag play /path/to/your.bag --clock` |
 | 3 | `uf_node <shortcut>` |
 
-[§2.1–2.2](#21-m3dgr-ros1) walk through ROS1 benchmarks; [§2.3](#23-ros2-humble-runtime) covers the ROS2 runtime; [§2.4](#24-adapt-your-device) shows how to adapt your own hardware.
+[§2.1–2.2](#21-m3dgr-ros1) walk through ROS1 benchmarks; [§2.3](#23-ros2-humble-runtime) covers the ROS2 runtime; [§2.4](#24-ultra-fusion-omni-ufo) introduces **Ultra-Fusion-Omni (UFO)** for omnidirectional multi-camera rigs.
 
 <a id="21-m3dgr-ros1"></a>
 
@@ -481,7 +482,7 @@ cp /opt/ultrafusion/config/m3dgr/uf_m3dgr_ros2_lvwio.yaml /tmp/my_ros2.yaml
 uf_node /tmp/my_ros2.yaml
 ```
 
-Released ROS2 profiles live under `/opt/ultrafusion/config/m3dgr/uf_m3dgr_ros2_*.yaml`. Field reference: [§3 Custom Profiles](#3-custom-profiles).
+Released ROS2 profiles live under `/opt/ultrafusion/config/m3dgr/uf_m3dgr_ros2_*.yaml`. To adapt a profile to your topics: [§3](#3-custom-profiles).
 
 <a id="example-m3dgr-on-ros2"></a>
 
@@ -520,34 +521,52 @@ ros2 topic echo /result_lidar_path --once --field header.frame_id
 Full-bag conversion, expected topics, and release checklist: [docs/ros2_humble_m3dgr.md](docs/ros2_humble_m3dgr.md).
 
 <a id="24-adapt-your-device"></a>
+<a id="24-ultra-fusion-omni-ufo"></a>
 
-### 2.4 Adapting Your Own Device (D360 Example)
+### 2.4 Ultra-Fusion-Omni (UFO)
 
-Copy the closest profile directory, set ROS topics, camera calibration, and extrinsics, then run `uf_node` with your YAML. Details: [docs/visual_life_d360.md](docs/visual_life_d360.md) (D360 = three fisheye cameras + Livox LiDAR + IMU). YAML fields: [§3](#3-custom-profiles).
+**Ultra-Fusion-Omni (UFO)** is the omnidirectional release line of Ultra-Fusion (**v0.1.1**, ROS1 Noetic). It extends the paper stack with multi-camera LVIO for platforms whose **vision and LiDAR are both 360°** — full surround coverage instead of a single forward-looking camera.
+
+The public reference is Computer Vision Life **D360**: three fisheye cameras + Livox Mid-360 + IMU. Use the same workflow to adapt your own omni (or multi-camera) rig: copy a profile, map topics / calibration / extrinsics, then launch `uf_node`. Full walkthrough: [docs/visual_life_d360.md](docs/visual_life_d360.md). Field-by-field adaptation: [§3](#3-custom-profiles).
 
 <p align="center">
-  <img src="images/gifs/d360_visual_life.gif" alt="Multi-camera LVIO on D360 data" width="50%">
+  <img src="images/gifs/d360_visual_life.gif" alt="UFO multi-camera LVIO on D360 (360° vision + LiDAR)" width="50%">
 </p>
+<p align="center"><em>UFO on D360 — omnidirectional multi-camera LVIO with surround LiDAR.</em></p>
 
 | Step | Action |
 | --- | --- |
 | Download | [D360 bag (Baidu Netdisk)](https://pan.baidu.com/s/1hrrsmn3BJP4seY4z82qeZw?pwd=thce), extraction code: `thce` |
-| Install | v0.1.1 `.deb` from GitHub Releases |
+| Install | **v0.1.1 (UFO)** `.deb` from GitHub Releases |
 | Configure | `cp -a /opt/ultrafusion/config/visual_life /tmp/my_rig` — edit topics, `camera*.yaml`, `multi_camera.modules[]` |
 | Run | `uf_node visual_life` or `uf_node /path/to/config.yaml` |
 | Verify | RViz fixed frame `world`; `/result_path`, `/curr_cloud`, `/feature_reproject_cloud`, `/colored_lidar_cloud` |
 
-Multi-camera: `use_multi_camera: true` and one `multi_camera.modules[]` entry per stream.
+Multi-camera: set `use_multi_camera: true` and one `multi_camera.modules[]` entry per stream.
 
-## 3. Custom Profiles
+<a id="3-custom-profiles"></a>
+<a id="3-adapt-to-your-device--platform"></a>
 
-Released shortcuts are aliases to YAML files under `/opt/ultrafusion/config/`.
-To customize, **copy the closest profile directory** so camera-intrinsic files keep their relative paths. Avoid creating a minimal YAML from scratch — the runtime expects the full field set at startup. Device adaptation walkthrough: [§2.4](#24-adapt-your-device), [docs/visual_life_d360.md](docs/visual_life_d360.md).
+## 3. Adapt to Your Device & Platform
+
+This section is the **how-to for bringing Ultra-Fusion onto your own hardware** — wheeled, legged, or aerial; single-camera, RGB-D, or omni multi-camera. Released shortcuts only alias YAML under `/opt/ultrafusion/config/`; adapting means copying the closest profile and rewriting it for your sensors, topics, calibration, and platform.
+
+**Recommended adaptation flow:**
+
+1. **Pick a starting profile** — same platform / sensor suite as yours (e.g. `m3dgr` for wheeled RGB-D + LiDAR; `visual_life` / [UFO](#24-ultra-fusion-omni-ufo) for 360° multi-camera + LiDAR; `groundtour` for legged; `lvig` for aerial).
+2. **Copy the whole profile directory** — keep camera-intrinsic files next to the main YAML (relative paths). Do not invent a minimal YAML; the runtime expects the full field set at startup.
+3. **Map ROS topics** — point `common.*` at your drivers ([§3.1](#31-fusion-modes)).
+4. **Choose fusion mode** — enable the sensors you actually have ([§3.1](#31-fusion-modes)).
+5. **Fill intrinsics & extrinsics** — cameras ([§3.2](#32-camera-intrinsics)), body–sensor transforms ([§3.4](#34-extrinsics)); optional GNSS ([§3.3](#33-gnss-fusion)).
+6. **Set timing / online calibration** — only if you need them ([§3.5](#35-calibration--delays)).
+7. **Launch and verify** — RViz trajectory / map topics; restart `uf_node` after every YAML edit.
+
+Omnidirectional multi-camera example (D360): [§2.4 UFO](#24-ultra-fusion-omni-ufo), [docs/visual_life_d360.md](docs/visual_life_d360.md).
 
 ```bash
 WORK=/tmp/uf_config
 mkdir -p "$WORK"
-cp -a /opt/ultrafusion/config/m3dgr "$WORK"/
+cp -a /opt/ultrafusion/config/m3dgr "$WORK"/   # or visual_life, groundtour, …
 
 CFG="$WORK/m3dgr/uf_m3dgr_standard.yaml"
 ${EDITOR:-nano} "$CFG"
@@ -562,7 +581,7 @@ rosbag play /media/path/to/your.bag --clock
 
 ### 3.1 Fusion modes
 
-Keep `imu: 1` for the modes below. Visual sensing is selected by `use_image`.
+Match the estimator to **your** sensor suite. Keep `imu: 1` for the modes below. Visual sensing is selected by `use_image`.
 `use_gf_standalone_vio` is not the UF visual switch: in the current runtime it
 only selects the Ground-Fusion standalone backend for pure VIO
 (`use_lidar: 0`, `use_image: 1`, `wheel: 0`). Ultra-Fusion also has its own
@@ -587,7 +606,7 @@ unless you are intentionally evaluating that coupling. `use_planar_wheel_factor`
 selects the planar wheel factor model; keep the released profile's value unless
 you are intentionally comparing it with the legacy wheel-pose factor.
 
-Sensor topics are configured in `common`:
+Sensor topics for **your** drivers go in `common`:
 
 ```yaml
 common:
@@ -602,8 +621,7 @@ common:
 
 ### 3.2 Camera intrinsics
 
-Camera intrinsics are not stored in the main UF YAML. The main YAML points to
-camodocal/OpenCV calibration YAML files:
+Point the profile at **your** camera calibration files. Intrinsics are not stored in the main UF YAML — the main YAML references camodocal/OpenCV calibration YAMLs:
 
 ```yaml
 cam0_calib: "color.yaml"
@@ -651,7 +669,7 @@ Multi-camera rigs use `multi_camera.modules[].cam_calib` instead of `cam0_calib`
 
 ### 3.3 GNSS fusion
 
-GNSS is independent of the LiDAR/visual/wheel mode switches. UF estimator paths
+Enable GNSS only if **your** platform / bag provides the measurements. GNSS is independent of the LiDAR/visual/wheel mode switches. UF estimator paths
 can add raw GNSS pseudorange/Doppler factors and position-only
 `sensor_msgs/NavSatFix` factors when the bag provides the required topics. The
 GF standalone VIO backend receives raw GNSS only; position-only GNSS fixes are
@@ -684,7 +702,7 @@ leave GNSS off.
 
 ### 3.4 Extrinsics
 
-All extrinsics are under `mapping`. Ultra-Fusion uses `T_A_B` to mean
+Fill **your** body–sensor mounts under `mapping`. Ultra-Fusion uses `T_A_B` to mean
 "transform a point from frame `B` into frame `A`":
 
 ```text
@@ -716,7 +734,7 @@ wheel extrinsic, provide `extrinsic_TIO/RIO` directly or provide a correct
 
 ### 3.5 Calibration & delays
 
-For fixed calibration, keep both visual online-calibration flags at zero:
+Start with **fixed** calibration on a new device; turn on online estimation only after topics and extrinsics look sane. For fixed calibration, keep both visual online-calibration flags at zero:
 
 ```yaml
 estimate_extrinsic: 0
