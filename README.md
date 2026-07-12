@@ -856,7 +856,7 @@ Please also consider citing our previous works related to this project:
   publisher={IEEE}
 }
 ```
-This work is self-funded. Thanks to Tianbao Zhang for providing computation resources. For maintenance, collaboration, or business inquiries, contact maotian616@gmail.com.
+This work is self-funded. Thanks to Tianbao Zhang for providing computation resources. For maintenance, collaboration, or business inquiries, contact maotian616@gmail.com and robot_yinjie@outlook.com.
 
 ## 6. Star History
 
