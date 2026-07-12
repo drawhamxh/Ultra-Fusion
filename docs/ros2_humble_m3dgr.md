@@ -9,20 +9,20 @@ This page documents the **ROS2 Humble runtime** (v0.2.0). Ultra-Fusion on ROS2 u
 Build locally:
 
 ```bash
-docker build -f Dockerfile.ros2 -t ultrafusion-ros2:0.2.0 .
+docker build -f Dockerfile.ros2 -t ultrafusion-ros2:0.2.1 .
 ```
 
 Or use the helper:
 
 ```bash
-./scripts/build_push_ros2_docker.sh --version 0.2.0
+./scripts/build_push_ros2_docker.sh --version 0.2.1
 ```
 
 Published tags:
 
 ```bash
-docker pull maotiandocker/ultrafusion-ros2:0.2.0
-docker pull registry.cn-hangzhou.aliyuncs.com/bit_robot_image/ultrafusion-ros2:0.2.0
+docker pull maotiandocker/ultrafusion-ros2:0.2.1
+docker pull registry.cn-hangzhou.aliyuncs.com/bit_robot_image/ultrafusion-ros2:0.2.1
 ```
 
 Published digests:
@@ -43,7 +43,7 @@ docker run --rm -it --net=host --ipc=host \
   -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
   -v /media:/media:ro \
   -v "$(pwd)":/workspace \
-  maotiandocker/ultrafusion-ros2:0.2.0
+  maotiandocker/ultrafusion-ros2:0.2.1
 ```
 
 Install the ROS2 Ultra-Fusion package in the container:
@@ -54,10 +54,10 @@ cd /workspace
 source /opt/ros/humble/setup.bash
 ```
 
-The generated v0.2.0 package is:
+The generated v0.2.1 package is:
 
 ```text
-ultrafusion-ros2_0.2.0_amd64.deb
+ultrafusion-ros2_0.2.1_amd64.deb
 SHA256: 0a589e6f739038e3e2fa83d6d444d0d84b638854114bc8f8d7f7ac4b2a1dd225
 ```
 
