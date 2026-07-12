@@ -1,6 +1,6 @@
 # Ultra-Fusion ROS2/Humble Guide
 
-This page documents the **ROS2 Humble runtime** (v0.2.0). Ultra-Fusion on ROS2 uses the same `uf_node` + YAML workflow as ROS1 — point profiles at your ROS2 topics and play any matching bag or live stream.
+This page documents the **ROS2 Humble runtime** (v0.2.1). Ultra-Fusion on ROS2 uses the same `uf_node` + YAML workflow as ROS1 — point profiles at your ROS2 topics and play any matching bag or live stream.
 
 **M3DGR** below is the documented walkthrough (including ROS1→ROS2 bag conversion). The same steps apply to other datasets once topics match a profile.
 
