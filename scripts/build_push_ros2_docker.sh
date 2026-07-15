@@ -3,7 +3,7 @@
 
 set -euo pipefail
 
-VERSION="${ULTRAFUSION_ROS2_VERSION:-0.2.0}"
+VERSION="${ULTRAFUSION_ROS2_VERSION:-0.2.1}"
 LOCAL_TAG="${ULTRAFUSION_ROS2_LOCAL_TAG:-ultrafusion-ros2:${VERSION}}"
 DOCKERHUB_TAG="${ULTRAFUSION_ROS2_DOCKERHUB_TAG:-maotiandocker/ultrafusion-ros2:${VERSION}}"
 ACR_TAG="${ULTRAFUSION_ROS2_ACR_TAG:-registry.cn-hangzhou.aliyuncs.com/bit_robot_image/ultrafusion-ros2:${VERSION}}"

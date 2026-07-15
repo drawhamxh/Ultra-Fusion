@@ -110,6 +110,8 @@ RUN git clone --branch "${CERES_VERSION}" --depth 1 https://github.com/ceres-sol
   && rm -rf /tmp/ceres /tmp/yaml-cpp
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    ros-humble-ros2service \
+    ros-humble-std-srvs \
     python3-yaml \
   && rm -rf /var/lib/apt/lists/*
 

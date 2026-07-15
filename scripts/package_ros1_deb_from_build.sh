@@ -1,20 +1,14 @@
 #!/usr/bin/env bash
-# Package a CMake-built Ultra-Fusion ROS2 tree as a release .deb.
-#
-# Example:
-#   ./scripts/package_ros2_deb_from_build.sh \
-#     --source /path/to/Ultra-Fusion \
-#     --version 0.2.2 \
-#     --output /path/to/releases
+# Package the ROS1 Noetic build as a reproducible Ultra-Fusion release .deb.
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SOURCE_ROOT="${ULTRAFUSION_SOURCE_ROOT:-}"
-VERSION="${ULTRAFUSION_ROS2_VERSION:-0.2.2}"
-PACKAGE_NAME="${ULTRAFUSION_ROS2_PACKAGE_NAME:-ultrafusion-ros2}"
-OUTPUT_DIR="${ULTRAFUSION_ROS2_OUTPUT_DIR:-$(cd "$SCRIPT_DIR/../../.." && pwd)/releases}"
-EXTRA_LIBRARY_DIRS="${ULTRAFUSION_ROS2_EXTRA_LIBRARY_DIRS:-}"
+VERSION="${ULTRAFUSION_ROS1_VERSION:-0.1.2}"
+PACKAGE_NAME="${ULTRAFUSION_ROS1_PACKAGE_NAME:-ultrafusion}"
+OUTPUT_DIR="${ULTRAFUSION_ROS1_OUTPUT_DIR:-$(cd "$SCRIPT_DIR/../../.." && pwd)/releases}"
+EXTRA_LIBRARY_DIRS="${ULTRAFUSION_ROS1_EXTRA_LIBRARY_DIRS:-}"
 FORCE=0
 
 usage() {
@@ -22,7 +16,7 @@ usage() {
 Usage: $(basename "$0") [OPTIONS]
 
 Options:
-  --source DIR      Ultra-Fusion source tree with build_ros2 outputs
+  --source DIR      Ultra-Fusion source tree with ROS1 build outputs
   --version VER     Debian package version, default ${VERSION}
   --output DIR      Directory for the .deb and .sha256 files
   --extra-lib-dir DIR
@@ -78,16 +72,16 @@ GIT=(env "HOME=$GIT_SAFE_HOME" git -C "$SOURCE_ROOT")
   die "source tree has unstaged tracked changes: $SOURCE_ROOT"
 "${GIT[@]}" diff --cached --quiet ||
   die "source tree has staged tracked changes: $SOURCE_ROOT"
-BUILD_DIR="$SOURCE_ROOT/build_ros2"
-UF_NODE="$BUILD_DIR/src/apps/uf_node"
-UF_ADAPTER="$BUILD_DIR/uf_ros2_adapter"
-UF_LIB="$BUILD_DIR/libultra_lib.so"
+BUILD_DIR="$SOURCE_ROOT/build"
+DEVEL_LIB="$BUILD_DIR/devel/lib"
+UF_NODE="$DEVEL_LIB/ultrafusion/uf_node"
+UF_LIB="$DEVEL_LIB/libultra_lib.so"
+GNSS_LIB="$DEVEL_LIB/libgnss_comm.so"
 
-for path in "$UF_NODE" "$UF_ADAPTER" "$UF_LIB"; do
-  [[ -f "$path" ]] || die "missing build artifact: $path"
+for path in "$UF_NODE" "$UF_LIB" "$GNSS_LIB"; do
+  [[ -f "$path" ]] || die "missing ROS1 build artifact: $path"
 done
 [[ -x "$UF_NODE" ]] || die "uf_node is not executable: $UF_NODE"
-[[ -x "$UF_ADAPTER" ]] || die "uf_ros2_adapter is not executable: $UF_ADAPTER"
 
 declare -a LIBRARY_SEARCH_DIRS=()
 
@@ -228,10 +222,11 @@ validate_profile_map_flag() {
 
 validate_release_runpath() {
   local artifact="$1"
+  local expected="$2"
   local runpath
   runpath="$(readelf -d "$artifact" 2>/dev/null |
     sed -n '/R.*PATH/s/.*\[\(.*\)\].*/\1/p' | head -n 1 || true)"
-  [[ "$runpath" == "$RELEASE_RPATH" ]] ||
+  [[ "$runpath" == "$expected" ]] ||
     die "unexpected release RUNPATH in $artifact: ${runpath:-<empty>}"
 }
 
@@ -249,16 +244,15 @@ validate_staged_linkage() {
 
 append_path_list "$EXTRA_LIBRARY_DIRS"
 append_path_list "${LD_LIBRARY_PATH:-}"
-append_search_dir "$BUILD_DIR"
+append_search_dir "$DEVEL_LIB"
 append_search_dir "$(dirname "$UF_NODE")"
-append_search_dir "$(dirname "$UF_ADAPTER")"
-append_search_dir "/opt/ros/humble/lib"
+append_search_dir "/opt/ros/noetic/lib"
 append_search_dir "/usr/local/lib"
 append_search_dir "/usr/local/lib/x86_64-linux-gnu"
 append_search_dir "/usr/lib/x86_64-linux-gnu"
 append_runpath_dirs "$UF_NODE"
-append_runpath_dirs "$UF_ADAPTER"
 append_runpath_dirs "$UF_LIB"
+append_runpath_dirs "$GNSS_LIB"
 
 mkdir -p "$OUTPUT_DIR"
 DEB_PATH="$OUTPUT_DIR/${PACKAGE_NAME}_${VERSION}_amd64.deb"
@@ -276,100 +270,150 @@ mkdir -p \
   "$PKG_DIR/etc/ld.so.conf.d" \
   "$PKG_DIR/opt/ultrafusion/bin" \
   "$PKG_DIR/opt/ultrafusion/lib" \
-  "$PKG_DIR/opt/ultrafusion/config/m3dgr" \
+  "$PKG_DIR/opt/ultrafusion/config" \
   "$PKG_DIR/opt/ultrafusion/rviz" \
   "$PKG_DIR/usr/bin"
 
 install -m 0755 "$UF_NODE" "$PKG_DIR/opt/ultrafusion/bin/uf_node"
-install -m 0755 "$UF_ADAPTER" "$PKG_DIR/opt/ultrafusion/bin/uf_ros2_adapter"
 install -m 0644 "$UF_LIB" "$PKG_DIR/opt/ultrafusion/lib/libultra_lib.so"
-echo "/opt/ultrafusion/lib" > \
-  "$PKG_DIR/etc/ld.so.conf.d/ultrafusion-ros2.conf"
+install -m 0644 "$GNSS_LIB" "$PKG_DIR/opt/ultrafusion/lib/libgnss_comm.so"
+echo "/opt/ultrafusion/lib" >"$PKG_DIR/etc/ld.so.conf.d/ultrafusion.conf"
 
 CERES_LIB="$(resolve_library_path libceres.so.3 "$UF_NODE" "$UF_LIB" || true)"
 [[ -n "$CERES_LIB" ]] ||
-  die "libceres.so.3 was not found; package in the public Humble image or pass --extra-lib-dir"
+  die "libceres.so.3 was not found; package in the public Noetic image or pass --extra-lib-dir"
 validate_cpu_ceres "$CERES_LIB"
 copy_library_family "$CERES_LIB" libceres.so libceres.so.3
 
+YAML_LIB="$(resolve_library_path libyaml-cpp.so.0.8 "$UF_LIB" || true)"
+[[ -n "$YAML_LIB" ]] ||
+  die "libyaml-cpp.so.0.8 was not found; package in the public Noetic image or pass --extra-lib-dir"
+copy_library_family "$YAML_LIB" libyaml-cpp.so libyaml-cpp.so.0.8
+
 strip --strip-unneeded "$PKG_DIR/opt/ultrafusion/bin/uf_node"
-strip --strip-unneeded "$PKG_DIR/opt/ultrafusion/bin/uf_ros2_adapter"
 strip --strip-unneeded "$PKG_DIR/opt/ultrafusion/lib/libultra_lib.so"
-CERES_STAGED="$(readlink -f "$PKG_DIR/opt/ultrafusion/lib/libceres.so.3")"
-strip --strip-unneeded "$CERES_STAGED"
+strip --strip-unneeded "$PKG_DIR/opt/ultrafusion/lib/libgnss_comm.so"
+strip --strip-unneeded "$(readlink -f "$PKG_DIR/opt/ultrafusion/lib/libceres.so.3")"
+strip --strip-unneeded "$(readlink -f "$PKG_DIR/opt/ultrafusion/lib/libyaml-cpp.so.0.8")"
 
-RELEASE_RPATH="/opt/ultrafusion/lib:/opt/ros/humble/lib:/usr/local/lib"
-patchelf --set-rpath "$RELEASE_RPATH" \
-  "$PKG_DIR/opt/ultrafusion/bin/uf_node"
-patchelf --set-rpath "$RELEASE_RPATH" \
-  "$PKG_DIR/opt/ultrafusion/bin/uf_ros2_adapter"
-patchelf --set-rpath "$RELEASE_RPATH" \
-  "$PKG_DIR/opt/ultrafusion/lib/libultra_lib.so"
-validate_release_runpath "$PKG_DIR/opt/ultrafusion/bin/uf_node"
-validate_release_runpath "$PKG_DIR/opt/ultrafusion/bin/uf_ros2_adapter"
-validate_release_runpath "$PKG_DIR/opt/ultrafusion/lib/libultra_lib.so"
+BIN_RPATH='$ORIGIN/../lib:/opt/ultrafusion/lib:/opt/ros/noetic/lib:/usr/local/lib'
+LIB_RPATH='$ORIGIN:/opt/ultrafusion/lib:/opt/ros/noetic/lib:/usr/local/lib'
+patchelf --set-rpath "$BIN_RPATH" "$PKG_DIR/opt/ultrafusion/bin/uf_node"
+patchelf --set-rpath "$LIB_RPATH" "$PKG_DIR/opt/ultrafusion/lib/libultra_lib.so"
+patchelf --set-rpath "$LIB_RPATH" "$PKG_DIR/opt/ultrafusion/lib/libgnss_comm.so"
+validate_release_runpath "$PKG_DIR/opt/ultrafusion/bin/uf_node" "$BIN_RPATH"
+validate_release_runpath "$PKG_DIR/opt/ultrafusion/lib/libultra_lib.so" "$LIB_RPATH"
+validate_release_runpath "$PKG_DIR/opt/ultrafusion/lib/libgnss_comm.so" "$LIB_RPATH"
 
-ROS2_PROFILE_FILES=(
-  uf_m3dgr_ros2_lio.yaml
-  uf_m3dgr_ros2_lwio.yaml
-  uf_m3dgr_ros2_lvwio.yaml
-  uf_m3dgr_ros2_vio.yaml
-  uf_m3dgr_ros2_viwo.yaml
-  uf_m3dgr_ros2_longtime02_lvwio.yaml
+PROFILE_FILES=(
+  groundtour/uf_groundtour.yaml
+  groundtour/uf_groundtour_arc2.yaml
+  groundtour/uf_groundtour_livox.yaml
+  kaist/uf_kaist.yaml
+  kaist/uf_kaist_urban23.yaml
+  kaist/uf_kaist_wio.yaml
+  lvig/uf_lvig.yaml
+  lvig/uf_lvig_hkairport01.yaml
+  lvig/uf_lvig_hkisland03.yaml
+  lvig/uf_lvig_lio.yaml
+  m2p/uf_m2p.yaml
+  m3dgr/uf_m3dgr.yaml
+  m3dgr/uf_m3dgr_corridor.yaml
+  m3dgr/uf_m3dgr_elevator.yaml
+  m3dgr/uf_m3dgr_lio.yaml
+  m3dgr/uf_m3dgr_longtime02_lvwio.yaml
+  m3dgr/uf_m3dgr_lvio.yaml
+  m3dgr/uf_m3dgr_lwio.yaml
+  visual_life/config.yaml
 )
-for profile_file in "${ROS2_PROFILE_FILES[@]}"; do
-  config="$SOURCE_ROOT/config/m3dgr/$profile_file"
-  [[ -f "$config" ]] || die "missing ROS2 M3DGR profile: $config"
-  validate_profile_map_flag "$config"
-  install -m 0644 "$config" "$PKG_DIR/opt/ultrafusion/config/m3dgr/"
+SUPPORT_FILES=(
+  groundtour/zed2i_left.yaml
+  kaist/left_kaist.yaml
+  lvig/color.yaml
+  lvig/lvig_camera.yaml
+  lvig/lvig_camera_am.yaml
+  m2p/wt_cam.yaml
+  m3dgr/color.yaml
+  visual_life/cameraA.yaml
+  visual_life/cameraB.yaml
+  visual_life/cameraC.yaml
+  visual_life/vins_multi_config.yaml
+)
+
+for relative in "${PROFILE_FILES[@]}"; do
+  source_config="$SOURCE_ROOT/config/$relative"
+  [[ -f "$source_config" ]] || die "missing ROS1 release profile: $source_config"
+  validate_profile_map_flag "$source_config"
+  mkdir -p "$PKG_DIR/opt/ultrafusion/config/$(dirname "$relative")"
+  install -m 0644 "$source_config" "$PKG_DIR/opt/ultrafusion/config/$relative"
+done
+for relative in "${SUPPORT_FILES[@]}"; do
+  source_config="$SOURCE_ROOT/config/$relative"
+  [[ -f "$source_config" ]] || die "missing ROS1 support config: $source_config"
+  mkdir -p "$PKG_DIR/opt/ultrafusion/config/$(dirname "$relative")"
+  install -m 0644 "$source_config" "$PKG_DIR/opt/ultrafusion/config/$relative"
 done
 
-if [[ -f "$SOURCE_ROOT/config/m3dgr/color.yaml" ]]; then
-  COLOR_CONFIG="$SOURCE_ROOT/config/m3dgr/color.yaml"
-elif [[ -f "$SOURCE_ROOT/config/realsense/color.yaml" ]]; then
-  COLOR_CONFIG="$SOURCE_ROOT/config/realsense/color.yaml"
-else
-  die "missing camera calibration color.yaml under config/m3dgr or config/realsense"
-fi
-install -m 0644 "$COLOR_CONFIG" \
-  "$PKG_DIR/opt/ultrafusion/config/m3dgr/color.yaml"
-
-for rviz_config in lio.rviz lio_ros2.rviz; do
+for rviz_config in lio.rviz uf_google_map_overlay.rviz \
+    uf_static_pcd_google_map_overlay.rviz; do
   [[ -f "$SOURCE_ROOT/rviz/$rviz_config" ]] ||
     die "missing RViz release layout: $SOURCE_ROOT/rviz/$rviz_config"
   install -m 0644 "$SOURCE_ROOT/rviz/$rviz_config" \
     "$PKG_DIR/opt/ultrafusion/rviz/$rviz_config"
 done
+install -m 0644 "$SOURCE_ROOT/package.xml" "$PKG_DIR/opt/ultrafusion/package.xml"
 
 cat >"$PKG_DIR/opt/ultrafusion/BUILD_INFO" <<EOF
-Ultra-Fusion ROS2 Humble runtime package
+Ultra-Fusion ROS1 Noetic runtime package
 Version: ${VERSION}
-Build contract: public Ubuntu 22.04 / ROS2 Humble image
+Build contract: public Ubuntu 20.04 / ROS Noetic image
 EOF
 
-cat >"$PKG_DIR/usr/bin/uf_node" <<'EOF'
+cat >"$PKG_DIR/usr/bin/uf-node" <<'EOF'
 #!/usr/bin/env bash
 set -eo pipefail
-source /opt/ros/humble/setup.bash
+source /opt/ros/noetic/setup.bash
 set -u
-export LD_LIBRARY_PATH="/opt/ultrafusion/lib:${LD_LIBRARY_PATH:-}"
-exec /opt/ultrafusion/bin/uf_node "$@"
-EOF
-chmod 0755 "$PKG_DIR/usr/bin/uf_node"
 
-cat >"$PKG_DIR/usr/bin/uf-ros2-adapter" <<'EOF'
-#!/usr/bin/env bash
-set -eo pipefail
-source /opt/ros/humble/setup.bash
-set -u
 export LD_LIBRARY_PATH="/opt/ultrafusion/lib:${LD_LIBRARY_PATH:-}"
-exec /opt/ultrafusion/bin/uf_ros2_adapter "$@"
-EOF
-chmod 0755 "$PKG_DIR/usr/bin/uf-ros2-adapter"
+export ROS_PACKAGE_PATH="/opt/ultrafusion:/opt/ros/noetic/share:${ROS_PACKAGE_PATH:-}"
+export ROS_MASTER_URI="${ROS_MASTER_URI:-http://127.0.0.1:11311}"
 
-validate_staged_linkage "$PKG_DIR/opt/ultrafusion/bin/uf_node"
-validate_staged_linkage "$PKG_DIR/opt/ultrafusion/bin/uf_ros2_adapter"
-validate_staged_linkage "$PKG_DIR/opt/ultrafusion/lib/libultra_lib.so"
+if [[ $# -eq 0 ]]; then
+  exec /opt/ultrafusion/bin/uf_node /opt/ultrafusion/config/m3dgr/uf_m3dgr.yaml
+fi
+
+case "$1" in
+  m3dgr) config=m3dgr/uf_m3dgr.yaml ;;
+  m3dgr-lio) config=m3dgr/uf_m3dgr_lio.yaml ;;
+  m3dgr-longtime02-lvwio) config=m3dgr/uf_m3dgr_longtime02_lvwio.yaml ;;
+  m3dgr-lvio) config=m3dgr/uf_m3dgr_lvio.yaml ;;
+  m3dgr-lwio) config=m3dgr/uf_m3dgr_lwio.yaml ;;
+  m2p|m2dgr-plus) config=m2p/uf_m2p.yaml ;;
+  lvig) config=lvig/uf_lvig.yaml ;;
+  lvig-lio) config=lvig/uf_lvig_lio.yaml ;;
+  kaist) config=kaist/uf_kaist.yaml ;;
+  kaist-wio) config=kaist/uf_kaist_wio.yaml ;;
+  groundtour) config=groundtour/uf_groundtour.yaml ;;
+  groundtour-arc2) config=groundtour/uf_groundtour_arc2.yaml ;;
+  groundtour-livox) config=groundtour/uf_groundtour_livox.yaml ;;
+  visual_life|visual-life|d360) config=visual_life/config.yaml ;;
+  *) exec /opt/ultrafusion/bin/uf_node "$@" ;;
+esac
+shift
+exec /opt/ultrafusion/bin/uf_node "/opt/ultrafusion/config/$config" "$@"
+EOF
+chmod 0755 "$PKG_DIR/usr/bin/uf-node"
+ln -s uf-node "$PKG_DIR/usr/bin/uf_node"
+
+for artifact in \
+    "$PKG_DIR/opt/ultrafusion/bin/uf_node" \
+    "$PKG_DIR/opt/ultrafusion/lib/libultra_lib.so" \
+    "$PKG_DIR/opt/ultrafusion/lib/libgnss_comm.so" \
+    "$PKG_DIR/opt/ultrafusion/lib/libceres.so.3" \
+    "$PKG_DIR/opt/ultrafusion/lib/libyaml-cpp.so.0.8"; do
+  validate_staged_linkage "$artifact"
+done
 
 INSTALLED_SIZE="$(du -sk "$PKG_DIR" | awk '{print $1}')"
 cat >"$PKG_DIR/DEBIAN/control" <<EOF
@@ -380,18 +424,20 @@ Priority: optional
 Architecture: amd64
 Installed-Size: ${INSTALLED_SIZE}
 Maintainer: Ultra-Fusion Team <sjtuyinjie@sjtu.edu.cn>
-Depends: ros-humble-rclcpp, ros-humble-ros2service, ros-humble-std-msgs, ros-humble-std-srvs, ros-humble-geometry-msgs, ros-humble-sensor-msgs, ros-humble-nav-msgs, ros-humble-visualization-msgs, ros-humble-cv-bridge, ros-humble-pcl-conversions, libc6, libgcc-s1, libstdc++6, libgomp1, libpcl-common1.12, libpcl-filters1.12, libpcl-search1.12, libpcl-features1.12, libpcl-kdtree1.12, libpcl-octree1.12, libpcl-sample-consensus1.12, libpcl-io1.12, libopencv-calib3d4.5d, libopencv-core4.5d, libopencv-highgui4.5d, libopencv-video4.5d, libopencv-features2d4.5d, libopencv-imgcodecs4.5d, libopencv-imgproc4.5d, libopencv-flann4.5d, libgoogle-glog0v5, libgflags2.2, libyaml-cpp0.7, libtbb12, libfmt8, libatlas3-base, libcholmod3, libcxsparse3, libspqr2, libunwind8
-Description: Ultra-Fusion ROS2 Humble runtime
- Prebuilt Ultra-Fusion ROS2/Humble runtime with M3DGR ROS2 profiles.
+Depends: ros-noetic-roscpp, ros-noetic-rosservice, ros-noetic-std-msgs, ros-noetic-std-srvs, ros-noetic-sensor-msgs, ros-noetic-geometry-msgs, ros-noetic-nav-msgs, ros-noetic-tf, ros-noetic-cv-bridge, ros-noetic-image-transport, ros-noetic-image-transport-plugins, libc6, libgcc-s1, libstdc++6, libgomp1, libopencv-core4.2, libopencv-imgproc4.2, libopencv-imgcodecs4.2, libopencv-calib3d4.2, libopencv-features2d4.2, libopencv-highgui4.2, libopencv-video4.2, libpcl-common1.10, libpcl-kdtree1.10, libpcl-search1.10, libpcl-filters1.10, libpcl-features1.10, libpcl-segmentation1.10, libpcl-io1.10, libgoogle-glog0v5, libgflags2.2, libatlas3-base, libcholmod3, libcxsparse3, libspqr2, libunwind8, libtbb2, libx11-6
+Description: Ultra-Fusion ROS1 Noetic runtime
+ Prebuilt ROS1 Noetic runtime with public benchmark and multi-camera profiles.
 EOF
 
-cat >"$PKG_DIR/DEBIAN/postinst" <<'EOF'
+for maintainer_script in postinst postrm; do
+  cat >"$PKG_DIR/DEBIAN/$maintainer_script" <<'EOF'
 #!/usr/bin/env bash
 set -e
 ldconfig
 exit 0
 EOF
-chmod 0755 "$PKG_DIR/DEBIAN/postinst"
+  chmod 0755 "$PKG_DIR/DEBIAN/$maintainer_script"
+done
 
 rm -f "$DEB_PATH" "$SHA_PATH"
 dpkg-deb --root-owner-group --build "$PKG_DIR" "$DEB_PATH"

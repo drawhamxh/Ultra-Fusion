@@ -30,8 +30,17 @@ Within one configurable optimization framework, Ultra-Fusion supports **WIO, VIO
 
 - **v0.1.0 (ROS1 Noetic)** — pre-built binaries to reproduce the paper benchmarks ([§2.1–2.2](#21-m3dgr-ros1)).
 - **v0.1.1 Ultra-Fusion-Omni (UFO) on ROS1 Noetic** — omnidirectional multi-camera LVIO for 360° vision + LiDAR; D360 as example ([§2.4](#24-ultra-fusion-omni-ufo), [walkthrough](docs/visual_life_d360.md)).
+- **v0.1.2 (ROS1 Noetic)** — improves runtime reliability and performance and adds flag-gated map PCD export ([release notes](docs/releases/v0.1.2.md)).
 - **v0.2.0 (ROS2 Humble)** — same `uf_node` + YAML workflow on Ubuntu 22.04 ([§2.3](#23-ros2-humble-runtime)).
 - **v0.2.1 (ROS2 Humble)** — fixes the ROS2 Humble runtime for M3DGR VIO/VIWO and validates LVWIO in the public ROS2 Docker runtime.
+- **v0.2.2 (ROS2 Humble)** — brings the latest estimator improvements and the same opt-in map PCD workflow to ROS2 ([release notes](docs/releases/v0.2.2.md)).
+
+Latest Debian assets:
+
+| Runtime | Asset | SHA256 |
+| --- | --- | --- |
+| ROS1 Noetic | `ultrafusion_0.1.2_amd64.deb` | `625252c2fade99b3c3f7ca016e0bda7c4a604be4dc1a27c4af2d7798026dbce9` |
+| ROS2 Humble | `ultrafusion-ros2_0.2.2_amd64.deb` | `243f88fa5e3d87fcd96a2b02c8561fca4d5e56419ab72ec0a3a731b0ea34cccc` |
 
 More demos and releases are on the way — stay tuned.
 
@@ -58,6 +67,7 @@ More demos and releases are on the way — stay tuned.
   - [3.3 GNSS fusion](#33-gnss-fusion)
   - [3.4 Extrinsics](#34-extrinsics)
   - [3.5 Calibration & delays](#35-calibration--delays)
+  - [3.6 Map PCD export](#36-map-pcd-export)
 - [4. Qualitative Results](#4-qualitative-results)
 - [5. License & Acknowledgements](#5-license--acknowledgements)
 - [6. Star History](#6-star-history)
@@ -128,16 +138,18 @@ Reported gains include competitive accuracy and improved localization availabili
 | | **ROS1 Noetic** | **ROS2 Humble** |
 | --- | --- | --- |
 | OS | Ubuntu 20.04 | Ubuntu 22.04 |
-| Package | v0.1.0 (paper) / v0.1.1 (**UFO**) | v0.2.0 / v0.2.1 |
+| Package | v0.1.2 (includes paper + **UFO** profiles) | v0.2.2 |
 | Install | [Docker](#docker-installation-recommended-) or [Native](#native-installation) | Same paths — pick the ROS2 image or deps script |
 | Data | ROS1 bags (`rosbag play`) | ROS2 bags (`ros2 bag play`) |
 | Profiles | All five benchmarks + UFO (`visual_life`) | Any YAML profile — point topics at your ROS2 drivers ([M3DGR example](#example-m3dgr-on-ros2)) |
 | Docs | [§2.1–2.2](#21-m3dgr-ros1) · [§2.4 UFO](#24-ultra-fusion-omni-ufo) | [§2.3](#23-ros2-humble-runtime) · [ros2 guide](docs/ros2_humble_m3dgr.md) |
 
 > [!TIP]
-> **First time?** Start with **ROS1** for the full benchmark suite. For 360° multi-camera + LiDAR rigs, use **UFO (v0.1.1)**. Choose **ROS2** when your drivers or recordings are already on Humble.
+> **First time?** Start with **ROS1 v0.1.2** for the full benchmark suite and UFO profiles. Choose **ROS2 v0.2.2** when your drivers or recordings are already on Humble.
 
-The paper release is **v0.1.0**. **v0.1.1** ships **Ultra-Fusion-Omni (UFO)** — see [§2.4](#24-ultra-fusion-omni-ufo).
+The paper release is **v0.1.0** and **v0.1.1** introduced Ultra-Fusion-Omni.
+The latest ROS1 package is **v0.1.2**; it retains those profiles and adds
+runtime reliability, performance, and map-export improvements.
 
 ---
 
@@ -206,9 +218,12 @@ Proceed to [§2 Running Ultra-Fusion](#2-run-on-benchmarks--your-device).
 
 Same CMake-based `uf_node` runtime as ROS1; no `colcon build` is needed with the prebuilt `.deb`.
 
+The published runtime image remains `0.2.1`; the installer now installs the
+`0.2.2` Debian package inside it. No `0.2.2` Docker image is claimed yet.
+
 | Step | Command |
 | --- | --- |
-| 1. Pull image | `docker pull maotiandocker/ultrafusion-ros2:0.2.0` (ACR: `registry.cn-hangzhou.aliyuncs.com/bit_robot_image/ultrafusion-ros2:0.2.0`) |
+| 1. Pull image | `docker pull maotiandocker/ultrafusion-ros2:0.2.1` (ACR: `registry.cn-hangzhou.aliyuncs.com/bit_robot_image/ultrafusion-ros2:0.2.1`) |
 | 2. Start container | See block below |
 | 3. Install `.deb` | `./scripts/install_ultrafusion_ros2_deb.sh` |
 | 4. Source ROS2 | `source /opt/ros/humble/setup.bash` |
@@ -223,7 +238,7 @@ docker run --rm -it --net=host --ipc=host \
   -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
   -v /media:/media:ro \
   -v "$(pwd)":/workspace \
-  maotiandocker/ultrafusion-ros2:0.2.0
+  maotiandocker/ultrafusion-ros2:0.2.1
 
 cd /workspace
 ./scripts/install_ultrafusion_ros2_deb.sh
@@ -323,7 +338,7 @@ Proceed to [§2.3 ROS2 runtime](#23-ros2-humble-runtime).
 | `/opt/ultrafusion/config/lvig` | MARS-LVIG profile |
 | `/opt/ultrafusion/config/kaist` | KAIST profile |
 | `/opt/ultrafusion/config/groundtour` | GrandTour profile |
-| `/opt/ultrafusion/config/visual_life` | **UFO** reference profile — omni multi-camera LVIO (D360), v0.1.1 |
+| `/opt/ultrafusion/config/visual_life` | **UFO** reference profile—omni multi-camera LVIO (D360), retained in v0.1.2 |
 | `/opt/ultrafusion/rviz/lio.rviz` | Default RViz layout |
 
 **ROS2 package** (`ultrafusion-ros2_*.deb`):
@@ -331,6 +346,8 @@ Proceed to [§2.3 ROS2 runtime](#23-ros2-humble-runtime).
 | Path | Description |
 | --- | --- |
 | `/opt/ultrafusion/bin/uf_node` | Main executable (ROS2 runtime) |
+| `/opt/ultrafusion/bin/uf_ros2_adapter` | ROS2 topic adapter |
+| `/usr/bin/uf_node`, `/usr/bin/uf-ros2-adapter` | CLI wrappers |
 | `/opt/ultrafusion/config/m3dgr/uf_m3dgr_ros2_*.yaml` | ROS2 YAML profiles |
 | `/opt/ultrafusion/rviz/lio_ros2.rviz` | RViz2 layout |
 
@@ -461,7 +478,11 @@ Additional shortcuts for cross-platform reproducibility. Download rosbags first,
 
 ### 2.3 ROS2 Humble runtime
 
-v0.2.0 adds a **ROS2 Humble runtime** alongside ROS1. The workflow is the same: `uf_node` + YAML profile, `ros2 bag play` (or live topics), RViz2 for visualization. **Any ROS2 dataset** works once topics match a profile — copy a released YAML, edit `common.*` fields, and launch.
+The **ROS2 Humble runtime** uses the same `uf_node` + YAML workflow as ROS1:
+`ros2 bag play` (or live topics) and RViz2 for visualization. v0.2.2 includes
+LIO, LWIO, LVWIO, VIO, and VIWO profiles plus opt-in map PCD export. Any ROS2
+dataset works once topics match a profile—copy a released YAML, edit
+`common.*` fields, and launch.
 
 Requires [ROS2 install](#ros2-humble--docker) (Docker or [Native](#ros2-humble--native-install)).
 
@@ -469,7 +490,7 @@ Requires [ROS2 install](#ros2-humble--docker) (Docker or [Native](#ros2-humble--
 
 | Terminal | Command |
 | --- | --- |
-| 1 | `source /opt/ros/humble/setup.bash` → `uf_node /path/to/config.yaml` |
+| 1 | `source /opt/ros/humble/setup.bash` → `uf_node /path/to/config.yaml --ros-args -p use_sim_time:=true` |
 | 2 | `ros2 bag play /path/to/your_ros2_bag --clock` |
 
 Optional RViz2: `rviz2 -d /opt/ultrafusion/rviz/lio_ros2.rviz` (fixed frame: `world`).
@@ -502,7 +523,8 @@ python3 scripts/convert_m3dgr_ros1_to_ros2_common.py \
 
 ```bash
 source /opt/ros/humble/setup.bash
-uf_node /opt/ultrafusion/config/m3dgr/uf_m3dgr_ros2_lvwio.yaml
+uf_node /opt/ultrafusion/config/m3dgr/uf_m3dgr_ros2_lvwio.yaml \
+  --ros-args -p use_sim_time:=true
 ```
 
 ```bash
@@ -537,7 +559,7 @@ The public reference is Computer Vision Life **D360**: three fisheye cameras + L
 | Step | Action |
 | --- | --- |
 | Download | [D360 bag (Baidu Netdisk)](https://pan.baidu.com/s/1hrrsmn3BJP4seY4z82qeZw?pwd=thce), extraction code: `thce` |
-| Install | **v0.1.1 (UFO)** `.deb` from GitHub Releases |
+| Install | **v0.1.2** `.deb` from GitHub Releases (includes the UFO profiles introduced in v0.1.1) |
 | Configure | `cp -a /opt/ultrafusion/config/visual_life /tmp/my_rig` — edit topics, `camera*.yaml`, `multi_camera.modules[]` |
 | Run | `uf_node visual_life` or `uf_node /path/to/config.yaml` |
 | Verify | RViz fixed frame `world`; `/result_path`, `/curr_cloud`, `/feature_reproject_cloud`, `/colored_lidar_cloud` |
@@ -783,6 +805,40 @@ the config.
 When checking a new profile, inspect the startup log lines for `Opti_TIC`,
 `Opti_TIO`, `td`, wheel `td`, GNSS status, and LiDAR-IMU time sync. A smooth but
 biased trajectory is often a frame or time-offset error, not just solver tuning.
+
+### 3.6 Map PCD export
+
+ROS1 v0.1.2 and ROS2 v0.2.2 can save LiDAR world-cloud keyframes and merge
+them into one `map.pcd`. The feature is opt-in; every released profile ships
+with `enable: false` so a normal run creates no map directory or service.
+
+```yaml
+map_pcd:
+  enable: false
+  output_directory: "/tmp/Ultrafusion"
+  translation_threshold_m: 2.0
+  rotation_threshold_deg: 30.0
+  service_name: "/ultrafusion/generate_map_pcd"
+```
+
+Set `enable: true` in a copied profile. The first keyframe is saved
+immediately; later keyframes are saved when translation reaches 2 m **or**
+rotation reaches 30 degrees with the defaults. Change both thresholds and the
+output directory in YAML if needed.
+
+Call the Trigger service before shutting down the node:
+
+```bash
+# ROS1
+rosservice call /ultrafusion/generate_map_pcd
+
+# ROS2
+ros2 service call /ultrafusion/generate_map_pcd std_srvs/srv/Trigger '{}'
+```
+
+Individual PCDs are written to
+`<output_directory>/keyframes/keyframe_*.pcd`; the service creates
+`<output_directory>/map.pcd`.
 
 
 

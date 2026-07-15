@@ -1,17 +1,19 @@
 #!/usr/bin/env bash
-# Download and install the Ultra-Fusion release .deb (v0.1.0).
+# Download and install the Ultra-Fusion ROS1/Noetic release .deb.
 # Usage:
 #   ./scripts/install_ultrafusion_deb.sh
 #   ./scripts/install_ultrafusion_deb.sh --mirror
-#   ./scripts/install_ultrafusion_deb.sh --deb /path/to/ultrafusion_0.1.0_amd64.deb
+#   ./scripts/install_ultrafusion_deb.sh --deb /path/to/ultrafusion_0.1.2_amd64.deb
 
 set -euo pipefail
 
-VERSION="0.1.0"
-DEB_NAME="ultrafusion_${VERSION}_amd64.deb"
-SHA256="c9a40d62df6100006431598d672c943f23f116e973e9c3b111d76d76c059196c"
-GITHUB_URL="https://github.com/sjtuyinjie/Ultra-Fusion/releases/download/v${VERSION}/${DEB_NAME}"
-MIRROR_URL="http://47.100.60.229:8088/loc_map/releases/ultrafusion/${DEB_NAME}"
+VERSION="${ULTRAFUSION_ROS1_VERSION:-0.1.2}"
+DEB_NAME="${ULTRAFUSION_ROS1_DEB_NAME:-ultrafusion_${VERSION}_amd64.deb}"
+TAG="${ULTRAFUSION_ROS1_RELEASE_TAG:-v${VERSION}}"
+GITHUB_REPO="${ULTRAFUSION_GITHUB_REPO:-sjtuyinjie/Ultra-Fusion}"
+GITHUB_URL="${ULTRAFUSION_ROS1_GITHUB_URL:-https://github.com/${GITHUB_REPO}/releases/download/${TAG}/${DEB_NAME}}"
+MIRROR_URL="${ULTRAFUSION_ROS1_MIRROR_URL:-http://47.100.60.229:8088/loc_map/releases/ultrafusion/${DEB_NAME}}"
+SHA256="${ULTRAFUSION_ROS1_SHA256:-625252c2fade99b3c3f7ca016e0bda7c4a604be4dc1a27c4af2d7798026dbce9}"
 
 USE_MIRROR=0
 LOCAL_DEB=""
@@ -20,19 +22,45 @@ usage() {
   cat <<EOF
 Usage: $(basename "$0") [OPTIONS]
 
-Download and install the Ultra-Fusion release package.
+Download and install the Ultra-Fusion ROS1/Noetic release package.
 
 Options:
   --mirror          Download from the project mirror instead of GitHub Releases
   --deb PATH        Install a local .deb file (skip download)
+  --sha256 HASH     Verify the package with this SHA256 checksum
   -h, --help        Show this help message
+
+Environment overrides:
+  ULTRAFUSION_ROS1_VERSION
+  ULTRAFUSION_ROS1_DEB_NAME
+  ULTRAFUSION_ROS1_RELEASE_TAG
+  ULTRAFUSION_ROS1_GITHUB_URL
+  ULTRAFUSION_ROS1_MIRROR_URL
+  ULTRAFUSION_ROS1_SHA256
 EOF
+}
+
+check_installed_linkage() {
+  if ! command -v ldd >/dev/null 2>&1; then
+    echo "Warning: ldd not found; skipping runtime dependency check." >&2
+    return 0
+  fi
+
+  local linkage
+  linkage="$(LD_LIBRARY_PATH="/opt/ultrafusion/lib:/opt/ros/noetic/lib:${LD_LIBRARY_PATH:-}" \
+    ldd /opt/ultrafusion/bin/uf_node 2>&1)"
+  if grep -q 'not found' <<<"$linkage"; then
+    echo "Error: unresolved Ultra-Fusion runtime dependencies:" >&2
+    echo "$linkage" >&2
+    exit 1
+  fi
 }
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --mirror) USE_MIRROR=1; shift ;;
     --deb) LOCAL_DEB="${2:?--deb requires a path}"; shift 2 ;;
+    --sha256) SHA256="${2:?--sha256 requires a hash}"; shift 2 ;;
     -h|--help) usage; exit 0 ;;
     *) echo "Unknown option: $1" >&2; usage >&2; exit 1 ;;
   esac
@@ -71,13 +99,25 @@ else
     exit 1
   fi
 
+fi
+
+if [[ -n "$SHA256" ]]; then
   echo "Verifying SHA256 checksum..."
   echo "${SHA256}  ${DEB_PATH}" | sha256sum -c -
+else
+  echo "Warning: no SHA256 checksum configured; skipping checksum verification." >&2
 fi
 
 echo "Installing ${DEB_PATH} ..."
 $SUDO dpkg -i "$DEB_PATH" || true
 $SUDO apt-get install -f -y
+check_installed_linkage
+
+INSTALLED_VERSION="$(dpkg-query -W -f='${Version}' ultrafusion 2>/dev/null || true)"
+if [[ "$INSTALLED_VERSION" != "$VERSION" ]]; then
+  echo "Error: installed ultrafusion version is ${INSTALLED_VERSION:-missing}, expected ${VERSION}." >&2
+  exit 1
+fi
 
 echo ""
 echo "Ultra-Fusion v${VERSION} installed."

@@ -4,17 +4,17 @@
 # Usage:
 #   ./scripts/install_ultrafusion_ros2_deb.sh
 #   ./scripts/install_ultrafusion_ros2_deb.sh --mirror
-#   ./scripts/install_ultrafusion_ros2_deb.sh --deb /path/to/ultrafusion-ros2_0.2.0_amd64.deb
+#   ./scripts/install_ultrafusion_ros2_deb.sh --deb /path/to/ultrafusion-ros2_0.2.2_amd64.deb
 
 set -euo pipefail
 
-VERSION="${ULTRAFUSION_ROS2_VERSION:-0.2.0}"
+VERSION="${ULTRAFUSION_ROS2_VERSION:-0.2.2}"
 DEB_NAME="${ULTRAFUSION_ROS2_DEB_NAME:-ultrafusion-ros2_${VERSION}_amd64.deb}"
 TAG="${ULTRAFUSION_ROS2_RELEASE_TAG:-v${VERSION}}"
 GITHUB_REPO="${ULTRAFUSION_GITHUB_REPO:-sjtuyinjie/Ultra-Fusion}"
 GITHUB_URL="${ULTRAFUSION_ROS2_GITHUB_URL:-https://github.com/${GITHUB_REPO}/releases/download/${TAG}/${DEB_NAME}}"
 MIRROR_URL="${ULTRAFUSION_ROS2_MIRROR_URL:-http://47.100.60.229:8088/loc_map/releases/ultrafusion/${DEB_NAME}}"
-SHA256="${ULTRAFUSION_ROS2_SHA256:-0a589e6f739038e3e2fa83d6d444d0d84b638854114bc8f8d7f7ac4b2a1dd225}"
+SHA256="${ULTRAFUSION_ROS2_SHA256:-243f88fa5e3d87fcd96a2b02c8561fca4d5e56419ab72ec0a3a731b0ea34cccc}"
 
 USE_MIRROR=0
 LOCAL_DEB=""
@@ -39,6 +39,26 @@ Environment overrides:
   ULTRAFUSION_ROS2_MIRROR_URL
   ULTRAFUSION_ROS2_SHA256
 EOF
+}
+
+check_installed_linkage() {
+  if ! command -v ldd >/dev/null 2>&1; then
+    echo "Warning: ldd not found; skipping runtime dependency check." >&2
+    return 0
+  fi
+
+  local binary
+  local linkage
+  for binary in /opt/ultrafusion/bin/uf_node \
+      /opt/ultrafusion/bin/uf_ros2_adapter; do
+    linkage="$(LD_LIBRARY_PATH="/opt/ultrafusion/lib:/opt/ros/humble/lib:${LD_LIBRARY_PATH:-}" \
+      ldd "$binary" 2>&1)"
+    if grep -q 'not found' <<<"$linkage"; then
+      echo "Error: unresolved Ultra-Fusion runtime dependencies in ${binary}:" >&2
+      echo "$linkage" >&2
+      exit 1
+    fi
+  done
 }
 
 while [[ $# -gt 0 ]]; do
@@ -95,6 +115,13 @@ fi
 echo "Installing ${DEB_PATH} ..."
 $SUDO dpkg -i "$DEB_PATH" || true
 $SUDO apt-get install -f -y
+check_installed_linkage
+
+INSTALLED_VERSION="$(dpkg-query -W -f='${Version}' ultrafusion-ros2 2>/dev/null || true)"
+if [[ "$INSTALLED_VERSION" != "$VERSION" ]]; then
+  echo "Error: installed ultrafusion-ros2 version is ${INSTALLED_VERSION:-missing}, expected ${VERSION}." >&2
+  exit 1
+fi
 
 echo ""
 echo "Ultra-Fusion ROS2 v${VERSION} installed."

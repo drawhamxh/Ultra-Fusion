@@ -1,6 +1,8 @@
 # Ultra-Fusion ROS2/Humble Guide
 
-This page documents the **ROS2 Humble runtime** (v0.2.1). Ultra-Fusion on ROS2 uses the same `uf_node` + YAML workflow as ROS1 — point profiles at your ROS2 topics and play any matching bag or live stream.
+This page documents the **ROS2 Humble v0.2.2 Debian package**. Ultra-Fusion on
+ROS2 uses the same `uf_node` + YAML workflow as ROS1—point profiles at your
+ROS2 topics and play any matching bag or live stream.
 
 **M3DGR** below is the documented walkthrough (including ROS1→ROS2 bag conversion). The same steps apply to other datasets once topics match a profile.
 
@@ -54,12 +56,15 @@ cd /workspace
 source /opt/ros/humble/setup.bash
 ```
 
-The generated v0.2.1 package is:
+The v0.2.2 package is:
 
 ```text
-ultrafusion-ros2_0.2.1_amd64.deb
-SHA256: 0a589e6f739038e3e2fa83d6d444d0d84b638854114bc8f8d7f7ac4b2a1dd225
+ultrafusion-ros2_0.2.2_amd64.deb
+SHA256: 243f88fa5e3d87fcd96a2b02c8561fca4d5e56419ab72ec0a3a731b0ea34cccc
 ```
+
+The published Docker runtime tag remains `0.2.1`. The v0.2.2 release is a
+Debian-package release; no `0.2.2` Docker tag or digest is published yet.
 
 ## M3DGR ROS2 Bag Conversion
 
@@ -100,7 +105,8 @@ Use one terminal for the estimator and another for replay:
 
 ```bash
 source /opt/ros/humble/setup.bash
-uf_node /opt/ultrafusion/config/m3dgr/uf_m3dgr_ros2_lvwio.yaml
+uf_node /opt/ultrafusion/config/m3dgr/uf_m3dgr_ros2_lvwio.yaml \
+  --ros-args -p use_sim_time:=true
 ```
 
 ```bash
@@ -132,6 +138,37 @@ The ROS2 LVWIO profile expects:
 | Visual | `/camera/color/image_raw/compressed` |
 | Depth image, if enabled | `/camera/aligned_depth_to_color/image_raw` |
 
+## Save a map PCD
+
+Map export is disabled by default. Copy a profile and opt in explicitly:
+
+```yaml
+map_pcd:
+  enable: true
+  output_directory: "/tmp/Ultrafusion"
+  translation_threshold_m: 2.0
+  rotation_threshold_deg: 30.0
+  service_name: "/ultrafusion/generate_map_pcd"
+```
+
+The first LiDAR world cloud is saved as a keyframe. Later keyframes are saved
+when the translation threshold **or** rotation threshold is reached. Before
+stopping `uf_node`, generate the combined map:
+
+```bash
+ros2 service call /ultrafusion/generate_map_pcd std_srvs/srv/Trigger '{}'
+```
+
+Keyframes are under `/tmp/Ultrafusion/keyframes/` and the service creates
+`/tmp/Ultrafusion/map.pcd`. With `enable: false`, the node creates neither the
+directory nor the service.
+
+## v0.2.2 package validation
+
+The installed package completed short and full ROS2 bag replays with LiDAR,
+IMU, wheel, RGB, and depth enabled. Map export was checked in both flag states,
+including service generation and keyframe-to-map consistency.
+
 ## Release Checklist
 
 1. Build the ROS2 runtime image with `Dockerfile.ros2`.
@@ -139,9 +176,11 @@ The ROS2 LVWIO profile expects:
    `scripts/package_ros2_deb_from_build.sh --source /path/to/Ultra-Fusion`.
    Run this inside the target ROS2 Humble image for the final public release so
    OpenCV/PCL/Ceres ABI versions match the runtime image.
-3. Upload the ROS2 `.deb` to GitHub Releases under tag `v0.2.0`.
+3. Upload the ROS2 `.deb` to GitHub Releases under tag `v<VERSION>`.
 4. Set `ULTRAFUSION_ROS2_SHA256` in release notes or pass `--sha256` when
    installing.
-5. Push Docker Hub and ACR images with `scripts/build_push_ros2_docker.sh`.
+5. If a new Docker image is part of a future release, push Docker Hub and ACR
+   images with `scripts/build_push_ros2_docker.sh` and publish the exact
+   digests. v0.2.2 does not claim a new image.
 6. Run the 20s M3DGR smoke test and at least one full M3DGR sequence before
    marking the release stable.

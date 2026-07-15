@@ -82,6 +82,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ros-noetic-cv-bridge \
     ros-noetic-geometry-msgs \
     ros-noetic-image-transport \
+    ros-noetic-image-transport-plugins \
     ros-noetic-message-generation \
     ros-noetic-nav-msgs \
     ros-noetic-nodelet \
@@ -124,6 +125,11 @@ RUN git clone --branch "${CERES_VERSION}" --depth 1 https://github.com/ceres-sol
   && cmake --build /tmp/yaml-cpp/build --target install -- -j"${BUILD_JOBS}" \
   && ldconfig \
   && rm -rf /tmp/ceres /tmp/yaml-cpp
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ros-noetic-rosservice \
+    ros-noetic-std-srvs \
+  && rm -rf /var/lib/apt/lists/*
 
 ENV TERM=xterm-256color
 ENV ROS_MASTER_URI=http://127.0.0.1:11311

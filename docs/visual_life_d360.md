@@ -1,10 +1,15 @@
 # Ultra-Fusion-Omni (UFO): Omnidirectional Multi-Camera LVIO
 
-**Ultra-Fusion-Omni (UFO)** is the v0.1.1 release line for platforms with **360° vision and LiDAR**. Copy the closest released profile, edit ROS topics, camera calibration, and extrinsics, then run `uf_node` with your YAML.
+**Ultra-Fusion-Omni (UFO)** was introduced in v0.1.1 for platforms with
+**360° vision and LiDAR** and is included in the current ROS1 v0.1.2 package.
+Copy the closest released profile, edit ROS topics, camera calibration, and
+extrinsics, then run `uf_node` with your YAML.
 
 **Computer Vision Life D360** below is the public reference (Livox Mid-360 + IMU + three fisheye cameras); replace its topics and calibration with yours.
 
-> v0.1.0 = paper package. UFO multi-camera and the `visual_life` profile require **v0.1.1**. Overview in the README: [§2.4 Ultra-Fusion-Omni (UFO)](../README.md#24-ultra-fusion-omni-ufo).
+> v0.1.0 = paper package. UFO multi-camera and the `visual_life` profile require
+> **v0.1.1 or later**; use v0.1.2 for the latest fixes. Overview in the README:
+> [§2.4 Ultra-Fusion-Omni (UFO)](../README.md#24-ultra-fusion-omni-ufo).
 
 <p align="center">
   <img src="../images/gifs/d360_visual_life.gif" alt="UFO multi-camera LVIO on D360 (360° vision + LiDAR)" width="80%">
@@ -146,7 +151,7 @@ multi_camera:
 ## Run
 
 ```bash
-sudo dpkg -i ultrafusion_0.1.1_amd64.deb || sudo apt-get install -f -y
+sudo dpkg -i ultrafusion_0.1.2_amd64.deb || sudo apt-get install -f -y
 source /opt/ros/noetic/setup.bash
 
 roscore
