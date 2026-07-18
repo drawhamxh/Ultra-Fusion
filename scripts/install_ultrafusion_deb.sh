@@ -3,17 +3,17 @@
 # Usage:
 #   ./scripts/install_ultrafusion_deb.sh
 #   ./scripts/install_ultrafusion_deb.sh --mirror
-#   ./scripts/install_ultrafusion_deb.sh --deb /path/to/ultrafusion_0.1.2_amd64.deb
+#   ./scripts/install_ultrafusion_deb.sh --deb /path/to/ultrafusion_0.1.3_amd64.deb
 
 set -euo pipefail
 
-VERSION="${ULTRAFUSION_ROS1_VERSION:-0.1.2}"
+VERSION="${ULTRAFUSION_ROS1_VERSION:-0.1.3}"
 DEB_NAME="${ULTRAFUSION_ROS1_DEB_NAME:-ultrafusion_${VERSION}_amd64.deb}"
 TAG="${ULTRAFUSION_ROS1_RELEASE_TAG:-v${VERSION}}"
 GITHUB_REPO="${ULTRAFUSION_GITHUB_REPO:-sjtuyinjie/Ultra-Fusion}"
 GITHUB_URL="${ULTRAFUSION_ROS1_GITHUB_URL:-https://github.com/${GITHUB_REPO}/releases/download/${TAG}/${DEB_NAME}}"
 MIRROR_URL="${ULTRAFUSION_ROS1_MIRROR_URL:-http://47.100.60.229:8088/loc_map/releases/ultrafusion/${DEB_NAME}}"
-SHA256="${ULTRAFUSION_ROS1_SHA256:-625252c2fade99b3c3f7ca016e0bda7c4a604be4dc1a27c4af2d7798026dbce9}"
+SHA256="${ULTRAFUSION_ROS1_SHA256:-fe3c74d999a4f6bcf4d11be4c70e67aa48586c3b5cda2af37b521f8e37c8a84c}"
 
 USE_MIRROR=0
 LOCAL_DEB=""
