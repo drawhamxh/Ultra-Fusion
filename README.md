@@ -919,3 +919,13 @@ This work is self-funded. Thanks to Tianbao Zhang for providing computation reso
 ## 6. Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=sjtuyinjie/Ultra-Fusion&type=Timeline)](https://star-history.com/#Ashutosh00710/github-readme-activity-graph&Timeline)
+
+
+
+<a href="https://www.star-history.com/?repos=sjtuyinjie%2FUltra-Fusion&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=sjtuyinjie/Ultra-Fusion&type=date&theme=dark&legend=top-left&sealed_token=_2cMIxc1X-NoA-_ecCsLMFJZTOMXbvKCS5epE6-QBUmCNtzb0soFtOd1a4kaLVg9crGrbHc1YCR9koiKguEwmzrQNqWXj1yFNDGpYP9WOO4opPlehDPBxeTarr3DsLKDW_02HUWFjzG3_S-bhGFmH-hzmmbzKjLhhj0p0vMOGOtg7_xSs8cRQxzOyf-N" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=sjtuyinjie/Ultra-Fusion&type=date&legend=top-left&sealed_token=_2cMIxc1X-NoA-_ecCsLMFJZTOMXbvKCS5epE6-QBUmCNtzb0soFtOd1a4kaLVg9crGrbHc1YCR9koiKguEwmzrQNqWXj1yFNDGpYP9WOO4opPlehDPBxeTarr3DsLKDW_02HUWFjzG3_S-bhGFmH-hzmmbzKjLhhj0p0vMOGOtg7_xSs8cRQxzOyf-N" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=sjtuyinjie/Ultra-Fusion&type=date&legend=top-left&sealed_token=_2cMIxc1X-NoA-_ecCsLMFJZTOMXbvKCS5epE6-QBUmCNtzb0soFtOd1a4kaLVg9crGrbHc1YCR9koiKguEwmzrQNqWXj1yFNDGpYP9WOO4opPlehDPBxeTarr3DsLKDW_02HUWFjzG3_S-bhGFmH-hzmmbzKjLhhj0p0vMOGOtg7_xSs8cRQxzOyf-N" />
+ </picture>
+</a>
