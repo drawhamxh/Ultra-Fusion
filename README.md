@@ -916,9 +916,15 @@ Please also consider citing our previous works related to this project:
 ```
 This work is self-funded. Thanks to Tianbao Zhang for providing computation resources. For maintenance, collaboration, or business inquiries, contact maotian616@gmail.com and robot_yinjie@outlook.com.
 
-## 6. Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=sjtuyinjie/Ultra-Fusion&type=Timeline)](https://star-history.com/#Ashutosh00710/github-readme-activity-graph&Timeline)
+## 6.Star History
 
+<a href="https://www.star-history.com/?repos=sjtuyinjie%2FUltra-Fusion&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=sjtuyinjie/Ultra-Fusion&type=date&theme=dark&legend=top-left&sealed_token=XObeBtwI8iErKriqBqA_O3nZQQ3I8P9InWmZ3y5tSmxk8T2d_jni93lZdX98y0yb1asj9pyYslSAZ6w25IkyhD0KQr7BbQogDLYc2N2mLGzasq8zTjwNzo6yaWOmGpobAZuU-5KKCNg4nPlbWXYOrZTKnngLJYB6QBx5Pp-hsPOTUMTqWRUDACuYAqlZ" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=sjtuyinjie/Ultra-Fusion&type=date&legend=top-left&sealed_token=XObeBtwI8iErKriqBqA_O3nZQQ3I8P9InWmZ3y5tSmxk8T2d_jni93lZdX98y0yb1asj9pyYslSAZ6w25IkyhD0KQr7BbQogDLYc2N2mLGzasq8zTjwNzo6yaWOmGpobAZuU-5KKCNg4nPlbWXYOrZTKnngLJYB6QBx5Pp-hsPOTUMTqWRUDACuYAqlZ" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=sjtuyinjie/Ultra-Fusion&type=date&legend=top-left&sealed_token=XObeBtwI8iErKriqBqA_O3nZQQ3I8P9InWmZ3y5tSmxk8T2d_jni93lZdX98y0yb1asj9pyYslSAZ6w25IkyhD0KQr7BbQogDLYc2N2mLGzasq8zTjwNzo6yaWOmGpobAZuU-5KKCNg4nPlbWXYOrZTKnngLJYB6QBx5Pp-hsPOTUMTqWRUDACuYAqlZ" />
+ </picture>
+</a>
 
 
